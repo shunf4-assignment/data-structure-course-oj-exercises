@@ -1,0 +1,9 @@
+Exception: STATUS_ACCESS_VIOLATION at eip=0040197D
+eax=41414141 ebx=0062CC9C ecx=FFFFD8E0 edx=0000271E esi=612A337F edi=0062CC6C
+ebp=0062CC78 esp=0062A530 program=D:\Source\1\DsEx1-seq\DsEx1-Extra4\a.exe, pid 8412, thread main
+cs=0023 ds=002B es=002B fs=0053 gs=002B ss=002B
+Stack trace:
+Frame     Function  Args
+0062CC78  0040197D (00000001, 0062CC9C, 200000D0, 61007A02)
+0062CD18  61007A67 (00000000, 0062CD74, 61006A60, 00000000)
+End of stack trace
