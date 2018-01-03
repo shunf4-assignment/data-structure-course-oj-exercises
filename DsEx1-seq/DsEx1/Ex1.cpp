@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <cstring>
+#include <strstream>
 using namespace std;
 
 #define ERROR_LIST_INVALID -2
@@ -73,7 +74,14 @@ public:
 
 	virtual ~SqList()
 	{
-		delete[] data;
+		if(data != NULL)
+			delete[] data;
+	}
+
+	virtual void clear()
+	{
+		this->~SqList();
+		this->SqList<Elem>::SqList();
 	}
 
 	virtual void setAssign(void(*newAssign)(Elem &a, const Elem &b))
@@ -121,13 +129,13 @@ public:
 		return false;
 	}
 
-	virtual Elem & operator[] (unsigned int i) const
+	virtual Elem & operator[] (int i) const
 	{
 		if (i <= lastPos)
 			return data[i];
 		else
 			throw runtime_error("index greater than max Index in operator[] of SqList");
-		return (Elem &)(NULL);
+		return *(Elem *)(NULL);
 	}
 
 	//在第i个元素前插入元素x
@@ -193,6 +201,16 @@ public:
 		return true;
 	}
 
+	virtual bool delFirst(const Elem& x)
+	{
+		int searchNo;
+		searchNo = getSearchNo(x);
+		if (searchNo == -1)
+			return false;
+		delByNo(searchNo);
+		return true;
+	}
+
 	//遍历
 	virtual void traverse(void(*myVisit)(const Elem &, int index))
 	{
@@ -206,4 +224,281 @@ public:
 		for (int i = 0; i <= lastPos; i++)
 			myVisit(*(data + i), i + 1);
 	}
+
+	//删除所有值为x的元素
+	virtual bool delAll(const Elem &x, int fromIndex = 1)
+	{
+		if (fromIndex < 1 || fromIndex > lastPos + 1)
+			return false;
+		int i = fromIndex - 1;
+		Elem * p = data + i;
+		int deletedCount = 0;
+		while (i <= lastPos)
+		{
+			if (compare(*p, x) == CompareEqual)
+			{
+				deletedCount++;
+				if (p + deletedCount <= data + lastPos)
+					assign(*p, *(p + deletedCount));
+				p--;
+			}
+			else if (deletedCount != 0)
+			{
+				assign(*(p + 1), *(p + 1 + deletedCount));
+			}
+
+			i++;
+			p++;
+		}
+
+		if (deletedCount != 0)
+		{
+			lastPos -= deletedCount;
+			return true;
+		}
+		return false;
+	}
+
+	//去重
+	virtual void deduplicate()
+	{
+		for (int i = 0; i <= lastPos - 1; i++)
+		{
+			delAll(data[i], i + 2);
+		}
+	}
+
+	virtual void reverse()
+	{
+		if (lastPos == -1)
+			return;
+		Elem tmpData;
+		for (int i = 0; i <= (lastPos) / 2; i++)
+		{
+			tmpData = data[i];
+			data[i] = data[lastPos - i];
+			data[lastPos - i] = tmpData;
+		}
+	}
 };
+
+template <typename Elem>
+class OrderedSqList : public SqList<Elem>
+{
+public:
+	OrderedSqList(int n) : SqList<Elem>(n)
+	{}
+
+	int insert_retInt(const Elem &x)
+	{
+		Elem *endPos = this->data + this->lastPos;
+		Elem *p;
+		for (p = endPos; p >= this->data; p--)
+			if (this->compare(x, *p) == CompareGreater)
+				break;
+
+		int insertNo = p - SqList<Elem>::data + 2;
+		SqList<Elem>::insert(insertNo, x);
+		return insertNo;
+	}
+
+	int del_retInt(const Elem &x)
+	{
+		int searchNo = this->SqList<Elem>::getSearchNo(x);
+		if (searchNo == -1 || searchNo == -2)
+			return -1;
+		else
+		{
+			bool delResult = SqList<Elem>::del(searchNo);
+			if (!delResult)
+				throw runtime_error("");
+			return searchNo;
+		}
+	}
+
+	void mergeTo(OrderedSqList<Elem> &l)
+	{
+		for (int i = 0; i <= this->lastPos; i++)
+			l.insert_retInt(this->data[i]);
+	}
+};
+
+void printNum(const int &i, int index)
+{
+	if (index != 1)
+		cout << " ";
+	cout << i;
+}
+
+int main()
+{
+	istrstream iSS("1 3 3 2 4 2 0 1 5 5 3 yes 0 0 2 9 9 yes 300 300 200 200 500 200 0 7 200 200 300 no 8 9 2 1 3 6 7 0 -1 5 4 9 10 12 0 -1 yes 0 2 199 3 3 7 199 0 199 no");
+	auto backupBuf = cin.rdbuf();
+	cin.set_rdbuf(iSS.rdbuf());
+
+	//PART1 : 非有序表
+	while (true)
+	{
+		int testInt;
+		SqList<int> l(10);
+		cout << "请依次输入要用来建立顺序表的整数，空格隔开，以0结束：";
+		while (true)
+		{
+			cin >> testInt;
+			if (testInt == 0)
+				break;
+			if (cin.fail())
+			{
+				cin.clear();
+				break;
+			}
+			l.insert(testInt);
+		}
+
+		cout << endl;
+		cout << "顺序表中元素：";
+		l.traverse(printNum);
+		cout << endl;
+
+		int insertNo, insertNum;
+		cout << "在第几个元素前插入：";
+		cin >> insertNo;
+		cout << endl;
+		cout << "插入的数字：";
+		cin >> insertNum;
+		cout << endl;
+		if (l.insert(insertNo, insertNum))
+		{
+			cout << insertNo << ","<< insertNum << " 插入成功" << endl;
+			l.traverse(printNum);
+			cout << endl;
+		}
+		else
+		{
+			cout << insertNo << "," << insertNum<< "插入失败" << endl;
+		}
+
+		int delNum;
+		cout << "要删除的数字（删除第一个）：";
+		cin >> delNum;
+		cout << endl;
+		if (l.delFirst(delNum))
+		{
+			cout << delNum << "删除成功" << endl;
+			l.traverse(printNum);
+			cout << endl;
+		}
+		else
+		{
+			cout << delNum << "删除失败" << endl;
+		}
+
+		cout << "要删除的数字（删除所有）：";
+		cin >> delNum;
+		cout << endl;
+		if (l.delAll(delNum))
+		{
+			cout << delNum << "删除成功" << endl;
+			l.traverse(printNum);
+			cout << endl;
+		}
+		else
+		{
+			cout << delNum << "删除失败" << endl;
+		}
+
+		cout << "表去重" << endl;
+		l.deduplicate();
+		cout << "去重后元素：";
+		l.traverse(printNum);
+		cout << endl;
+
+		cout << "表逆置" << endl;
+		l.reverse();
+		cout << "逆置后元素：";
+		l.traverse(printNum);
+		cout << endl;
+
+		cout << "表清空" << endl;
+		l.clear();
+		cout << "清空后元素：";
+		l.traverse(printNum);
+		cout << endl;
+
+		string command;
+		cout << "重新开始吗？（yes 或 其他）";
+		cin >> command;
+		if (command != "yes")
+			break;
+	}
+
+	//PART 2 : 有序表
+	while (true)
+	{
+		int testInt;
+		OrderedSqList<int> l(10);
+		OrderedSqList<int> m(10);
+		cout << "请依次输入要用来建立有序顺序表的整数，空格隔开，以0结束：";
+		
+		while (true)
+		{
+			cin >> testInt;
+			if (testInt == 0)
+				break;
+			if (cin.fail())
+			{
+				cin.clear();
+				break;
+			}
+			
+			cout << endl << "插入到了第" << l.insert_retInt(testInt) << "位" << endl;
+		}
+
+		cout << "请输入第二个表的元素：";
+		while (true)
+		{
+			cin >> testInt;
+			if (testInt == 0)
+				break;
+			if (cin.fail())
+			{
+				cin.clear();
+				break;
+			}
+
+			cout << endl << "插入到了第" << m.insert_retInt(testInt) << "位" << endl;
+		}
+
+		cout << endl;
+		cout << "有序顺序表中元素：";
+		l.traverse(printNum);
+		cout << endl;
+
+		m.traverse(printNum);
+		cout << endl;
+
+		int insertNum;
+		cout << "插入的数字：";
+		cin >> insertNum;
+		cout << endl;
+		cout<< "在第" << l.insert_retInt(insertNum) << "位插入了" << insertNum << "。" << endl;
+		cout << "有序顺序表中元素：";
+		l.traverse(printNum);
+		cout << endl;
+
+		cout << "将第二个表合并到第一个表" << endl;
+		m.mergeTo(l);
+		cout << "合并后第一个表：";
+		l.traverse(printNum);
+		cout << endl;
+
+		string command;
+		cout << "重新开始吗？（yes 或 其他）";
+		cin >> command;
+		if (command != "yes")
+			break;
+	}
+	
+
+	return 0;
+}

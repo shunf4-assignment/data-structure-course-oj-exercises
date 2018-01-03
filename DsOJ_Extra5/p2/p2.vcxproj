@@ -19,14 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ap3.cpp" />
+    <ClCompile Include="p2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ap3.txt" />
+    <Text Include="p2.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{a058c11d-9374-405b-bd3b-06efcd85beb4}</ProjectGuid>
-    <RootNamespace>aP3</RootNamespace>
+    <ProjectGuid>{6f7799c9-d58f-425e-8e8f-21d51db0ba79}</ProjectGuid>
+    <RootNamespace>p2</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -91,8 +91,11 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_FS_DEBUG;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_FS_DEBUG</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

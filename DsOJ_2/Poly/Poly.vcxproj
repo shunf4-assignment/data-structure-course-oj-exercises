@@ -19,14 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ap3.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ap3.txt" />
+    <ClCompile Include="Poly.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{a058c11d-9374-405b-bd3b-06efcd85beb4}</ProjectGuid>
-    <RootNamespace>aP3</RootNamespace>
+    <ProjectGuid>{cc98ffe8-9b77-4738-837f-52fa04e159d6}</ProjectGuid>
+    <RootNamespace>Poly</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -91,8 +88,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_FS_DEBUG;</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
