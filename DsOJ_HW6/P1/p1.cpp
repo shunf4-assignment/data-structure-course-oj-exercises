@@ -268,6 +268,27 @@ public:
 		}
 	}
 
+	void threading(Order o)
+	{
+		threading_do(o, this->root);
+	}
+
+	static void threading_do(Order o, ThrBiTreeNode<E> *pre, ThrBiTreeNode<E> *cur)
+	{
+		if (cur == NULL)
+			return;
+		threading_do(o, pre, cur->lp);
+		if (cur->lp == NULL)
+		{
+			cur->lp = pre;
+			if (pre->rp == NULL)
+			{
+				pre->rp = cur;
+			}
+		}
+		threading_do(o, cur, cur->rp);
+		
+	}
 	
 };
 
