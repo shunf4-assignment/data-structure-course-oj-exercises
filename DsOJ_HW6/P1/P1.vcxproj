@@ -21,6 +21,10 @@
   <ItemGroup>
     <ClCompile Include="p1.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="Output.txt" />
+    <Text Include="p1.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7ad2c206-3227-4814-a39f-f24d806c4b0d}</ProjectGuid>
     <RootNamespace>P1</RootNamespace>
