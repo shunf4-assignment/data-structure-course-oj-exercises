@@ -53,7 +53,7 @@ class Matrix
 {
 private:
 	E * matrix_array;
-	
+
 public:
 	size_t rows;
 	size_t cols;
@@ -72,7 +72,7 @@ public:
 		this->rows = rows;
 		this->cols = cols;
 
-		if(arr)
+		if (arr)
 #ifdef _MSC_VER
 			memcpy_s(matrix_array, sizeof(E) * rows * cols, arr, sizeof(E) * rows * cols);
 #else
@@ -123,7 +123,7 @@ struct Node
 	}
 	~Node()
 	{
-		if(next)
+		if (next)
 			delete next;
 	}
 };
@@ -172,9 +172,9 @@ template <typename VertexElem, typename EdgeWeight>
 class Graph_Matrix : public Graph<VertexElem, EdgeWeight>
 {
 private:
-	Matrix<EdgeWeight> e;  
+	Matrix<EdgeWeight> e;
 	VertexElem * v;
-	
+
 public:
 	Graph_Matrix(bool directed, bool weighted, EdgeWeight defaultWeight)
 	{
@@ -200,11 +200,11 @@ public:
 	~Graph_Matrix()
 	{
 		if (v)
-			delete [] v;
+			delete[] v;
 	}
 
 	template <typename VertexElem_, typename EdgeWeight_>
-	friend std::istream& operator>> (std::istream &in, Graph_Matrix<VertexElem_, EdgeWeight_> &gm);
+	friend std::istream& operator >> (std::istream &in, Graph_Matrix<VertexElem_, EdgeWeight_> &gm);
 	template <typename VertexElem_, typename EdgeWeight_>
 	friend std::ostream& operator << (std::ostream &out, Graph_Matrix<VertexElem_, EdgeWeight_> &gm);
 
@@ -215,6 +215,148 @@ public:
 			if (i)
 				out << ' ';
 			out << v[i];
+		}
+	}
+
+	VertexElem &getVertex(size_t i)
+	{
+		if (i < Graph<VertexElem, EdgeWeight>::vertexNum)
+			return v[i];
+		else
+			throw "VERTEX OUT OF RANGE";
+	}
+
+	size_t firstNeighbor(size_t i)
+	{
+		size_t x;
+		for (x = 0; x < Graph<VertexElem, EdgeWeight>::vertexNum; x++)
+		{
+			if (e[i][x] != 0)
+			{
+				break;
+			}
+		}
+		if (x == Graph<VertexElem, EdgeWeight>::vertexNum)
+			return SIZE_MAX;
+		else
+			return x;
+	}
+
+	size_t nextNeighbor(size_t i, size_t cur)
+	{
+		size_t x;
+		for (x = cur + 1; x < Graph<VertexElem, EdgeWeight>::vertexNum; x++)
+		{
+			if (e[i][x] != 0)
+			{
+				break;
+			}
+		}
+		if (x == Graph<VertexElem, EdgeWeight>::vertexNum)
+			return SIZE_MAX;
+		else
+			return x;
+	}
+
+	std::string DFS_Components()
+	{
+		bool *visited = new bool[Graph<VertexElem, EdgeWeight>::vertexNum];
+		for (size_t i = 0; i < Graph<VertexElem, EdgeWeight>::vertexNum; i++)
+		{
+			visited[i] = false;
+		}
+		std::stringstream components;
+		for (size_t i = 0; i < Graph<VertexElem, EdgeWeight>::vertexNum; i++)
+		{
+			if (visited[i] == false)
+			{
+				components << "{";
+				DFS_Components_do(i, visited, components, true);
+				components << "}";
+
+			}
+		}
+		return components.str();
+	}
+
+	void DFS_Components_do(size_t i, bool *visited, std::stringstream &components, bool exteralInvoke)
+	{
+		if (visited[i] == true)
+			return;
+
+		visited[i] = true;
+		if (!exteralInvoke)
+			components << " ";
+		components << getVertex(i);
+
+		size_t currConnVert = this->firstNeighbor(i);
+
+		while (currConnVert != SIZE_MAX)
+		{
+			if (visited[currConnVert] == false)
+				DFS_Components_do(currConnVert, visited, components, false);
+			currConnVert = this->nextNeighbor(i, currConnVert);
+		}
+
+		return;
+	}
+
+	std::string BFS_Components()
+	{
+		bool *visited = new bool[Graph<VertexElem, EdgeWeight>::vertexNum];
+		for (size_t i = 0; i < Graph<VertexElem, EdgeWeight>::vertexNum; i++)
+		{
+			visited[i] = false;
+		}
+		std::stringstream components;
+		for (size_t i = 0; i < Graph<VertexElem, EdgeWeight>::vertexNum; i++)
+		{
+			if (visited[i] == false)
+			{
+				components << "{";
+				BFS_Components_do(i, visited, components, true);
+				components << "}";
+
+			}
+		}
+		return components.str();
+	}
+
+	void BFS_Components_do(size_t i, bool *visited, std::stringstream &components, bool externalInvoke)
+	{
+		const size_t QMax = 100000;
+		static size_t queue[QMax] = { 0 };
+		static size_t *front = queue;
+		static size_t *rear = queue;
+		if (externalInvoke)
+		{
+			front = rear = queue;
+			*(rear++) = i;
+			visited[i] = true;
+			BFS_Components_do(i, visited, components, false);
+			return;
+		}
+
+		while (front != rear)
+		{
+			size_t currV;
+			if (front != queue)
+				components << ' ';
+			currV = *(front++);
+			components << v[currV];
+
+			auto currConnV = e[currV];
+			for (size_t x = 0; x < Graph<VertexElem, EdgeWeight>::vertexNum; x++)
+			{
+				if (currConnV[x] != 0)
+				{
+					if (visited[x] == false)
+					{
+						visited[x] = true;
+						*(rear++) = x;
+					}
+				}
+			}
 		}
 	}
 };
@@ -239,7 +381,7 @@ public:
 	~Graph_List()
 	{
 		if (v)
-			delete [] v;
+			delete[] v;
 	}
 
 	size_t indexOfVertex(const VertexElem &vtx) const
@@ -266,6 +408,136 @@ public:
 			out << v[i].v;
 		}
 	}
+
+	VertexElem &getVertex(size_t i)
+	{
+		if (i < Graph<VertexElem, EdgeWeight>::vertexNum)
+			return v[i].v;
+		else
+			throw "VERTEX OUT OF RANGE";
+	}
+
+	size_t firstNeighbor(size_t i)
+	{
+		if (v[i].adjV == NULL)
+			return SIZE_MAX;
+		return v[i].adjV->data.vi;
+	}
+
+	size_t nextNeighbor(size_t i, size_t cur)
+	{
+		if (v[i].adjV == NULL)
+			return SIZE_MAX;
+		auto currAdjV = v[i].adjV;
+		while (currAdjV && cur != currAdjV->data.vi)
+		{
+			currAdjV = currAdjV->next;
+		}
+		if (currAdjV == NULL || currAdjV->next == NULL)
+			return SIZE_MAX;
+		return currAdjV->next->data.vi;
+	}
+
+	std::string DFS_Components()
+	{
+		bool *visited = new bool[Graph<VertexElem, EdgeWeight>::vertexNum];
+		for (size_t i = 0; i < Graph<VertexElem, EdgeWeight>::vertexNum; i++)
+		{
+			visited[i] = false;
+		}
+		std::stringstream components;
+		for (size_t i = 0; i < Graph<VertexElem, EdgeWeight>::vertexNum; i++)
+		{
+			if (visited[i] == false)
+			{
+				components << "{";
+				DFS_Components_do(i, visited, components, true);
+				components << "}";
+				
+			}
+		}
+		return components.str();
+	}
+
+	void DFS_Components_do(size_t i, bool *visited, std::stringstream &components, bool exteralInvoke)
+	{
+		if (visited[i] == true)
+			return;
+
+		visited[i] = true;
+		if (!exteralInvoke)
+			components << " ";
+		components << getVertex(i);
+
+		size_t currConnVert = this->firstNeighbor(i);
+
+		while (currConnVert != SIZE_MAX)
+		{
+			if (visited[currConnVert] == false)
+				DFS_Components_do(currConnVert, visited, components, false);
+			currConnVert = this->nextNeighbor(i, currConnVert);
+		}
+
+		return;
+	}
+
+	std::string BFS_Components()
+	{
+		bool *visited = new bool[Graph<VertexElem, EdgeWeight>::vertexNum];
+		for (size_t i = 0; i < Graph<VertexElem, EdgeWeight>::vertexNum; i++)
+		{
+			visited[i] = false;
+		}
+		std::stringstream components;
+		for (size_t i = 0; i < Graph<VertexElem, EdgeWeight>::vertexNum; i++)
+		{
+			if (visited[i] == false)
+			{
+				components << "{";
+				BFS_Components_do(i, visited, components, true);
+				components << "}";
+
+			}
+		}
+		return components.str();
+	}
+
+	void BFS_Components_do(size_t i, bool *visited, std::stringstream &components, bool externalInvoke)
+	{
+		const size_t QMax = 100000;
+		static size_t queue[QMax] = { 0 };
+		static size_t *front = queue;
+		static size_t *rear = queue;
+		if (externalInvoke)
+		{
+			front = rear = queue;
+			*(rear++) = i;
+			visited[i] = true;
+			BFS_Components_do(i, visited, components, false);
+			return;
+		}
+
+		while (front != rear)
+		{
+			size_t currV;
+			if (front != queue)
+				components << ' ';
+			currV = *(front++);
+			components << v[currV].v;
+
+			auto currConnV = v[currV].adjV;
+			while (currConnV)
+			{
+				if (visited[currConnV->data.vi] == false)
+				{
+					visited[currConnV->data.vi] = true;
+					*(rear++) = currConnV->data.vi;
+				}
+				currConnV = currConnV->next;
+			}
+		}
+	}
+		
 };
 
 
@@ -277,43 +549,22 @@ std::istream & operator >> (std::istream & in, Graph_Matrix<VertexElem, EdgeWeig
 {
 	if (gm.v)
 		delete[]gm.v;
-	
-	GraphType gt;
-	in >> reinterpret_cast<unsigned &>(gt);
 
-	switch (gt)
-	{
-		case 1:
-			gm.setDirected(true);
-			gm.setWeighted(false);
-			gm.setNonDirectWeight(1);
-			break;
-		case 2:
-			gm.setDirected(true);
-			gm.setWeighted(true);
-			break;
-		case 3:
-			gm.setDirected(false);
-			gm.setWeighted(false);
-			gm.setNonDirectWeight(1);
-			break;
-		case 4:
-			gm.setDirected(false);
-			gm.setWeighted(true);
-			break;
-	}
+	gm.setDirected(false);
+	gm.setWeighted(false);
+	gm.setNonDirectWeight(1);
 
 	size_t vCnt, eCnt;
 	in >> vCnt >> eCnt;
 
 	gm.vertexNum = vCnt;
-	
+
 	gm.v = new VertexElem[vCnt];
 	gm.e.init(vCnt, vCnt);
-	
+
 	for (size_t i = 0; i < vCnt; i++)
 	{
-		in >> gm.v[i];
+		gm.v[i] = static_cast<VertexElem>(i);
 	}
 
 	VertexElem vS, vE;
@@ -328,7 +579,7 @@ std::istream & operator >> (std::istream & in, Graph_Matrix<VertexElem, EdgeWeig
 		{
 			in >> eW;
 		}
-		
+
 		gm.e[gm.indexOfVertex(vS)][gm.indexOfVertex(vE)] = eW;
 		if (!gm.directed)
 		{
@@ -338,43 +589,15 @@ std::istream & operator >> (std::istream & in, Graph_Matrix<VertexElem, EdgeWeig
 	return in;
 }
 
-template<typename VertexElem_, typename EdgeWeight_>
-std::ostream & operator<<(std::ostream & out, Graph_Matrix<VertexElem_, EdgeWeight_>& gm)
-{
-	gm.e.print(out);
-	return out;
-}
-
 template <typename VertexElem, typename EdgeWeight>
 std::istream & operator >> (std::istream & in, Graph_List<VertexElem, EdgeWeight> &ga)
 {
 	if (ga.v)
 		delete[]ga.v;
 
-	GraphType gt;
-	in >> reinterpret_cast<unsigned &>(gt);
-
-	switch (gt)
-	{
-		case 1:
-			ga.setDirected(true);
-			ga.setWeighted(false);
-			ga.setNonDirectWeight(1);
-			break;
-		case 2:
-			ga.setDirected(true);
-			ga.setWeighted(true);
-			break;
-		case 3:
-			ga.setDirected(false);
-			ga.setWeighted(false);
-			ga.setNonDirectWeight(1);
-			break;
-		case 4:
-			ga.setDirected(false);
-			ga.setWeighted(true);
-			break;
-	}
+	ga.setDirected(false);
+	ga.setWeighted(false);
+	ga.setNonDirectWeight(1);
 
 	size_t vCnt, eCnt;
 	in >> vCnt >> eCnt;
@@ -386,7 +609,7 @@ std::istream & operator >> (std::istream & in, Graph_List<VertexElem, EdgeWeight
 
 	for (size_t i = 0; i < vCnt; i++)
 	{
-		in >> ga.v[i].v;
+		ga.v[i].v = static_cast<VertexElem>(i);
 	}
 
 	VertexElem vS, vE;
@@ -429,24 +652,13 @@ std::istream & operator >> (std::istream & in, Graph_List<VertexElem, EdgeWeight
 	return in;
 }
 
-template<typename VertexElem_, typename EdgeWeight_>
-std::ostream & operator<<(std::ostream & out, Graph_List<VertexElem_, EdgeWeight_>& ga)
-{
-	for (size_t i = 0; i < ga.vertexNum; i++)
-	{
-		ga.v[i].print(out, ga.weighted);
-		out << std::endl;
-	}
-	return out;
-}
-
 #define FS_INFILE
 //#define FS_OUTFILE
 int main()
 {
 #if(defined(_FS_DEBUG) && defined(FS_INFILE))
 	std::ifstream f0;
-	f0.open("p1.txt", std::ios::in);
+	f0.open("p2.txt", std::ios::in);
 	auto cinbackup = std::cin.rdbuf();
 	std::cin.set_rdbuf(f0.rdbuf());
 #endif
@@ -459,33 +671,26 @@ int main()
 	std::cout.set_rdbuf(f1.rdbuf());
 #endif
 
-	std::stringstream mem;
-	
-	while (!std::cin.eof())
+	if (0)
 	{
-		mem.put(std::cin.get());
+		Graph_Matrix<int, int> g;
+		std::cin >> g;
+		std::cout << g.DFS_Components();
+		std::cout << std::endl;
+		std::cout << g.BFS_Components();
+		std::cout << std::endl;
 	}
 
-	mem.seekg(std::ios::beg);
-	Graph_Matrix<char, int> g0;
-	//Graph_Adj<char, int> g;
-	mem >> g0;
-
-	g0.printVertex(std::cout);
-	std::cout << std::endl;
-
-	std::cout << g0;
-
-	mem.seekg(std::ios::beg);
-	//Graph_Matrix<char, int> g;
-	Graph_List<char, int> g1;
-	mem >> g1;
-
-	//g1.printVertex(std::cout);
-	//std::cout << std::endl;
-
-	std::cout << g1;
-
+	if (1)
+	{
+		Graph_List<int, int> g;
+		std::cin >> g;
+		std::cout << g.DFS_Components();
+		std::cout << std::endl;
+		std::cout << g.BFS_Components();
+		std::cout << std::endl;
+	}
+	
 
 #if(defined(_FS_DEBUG) && defined(FS_INFILE))
 	f0.close();

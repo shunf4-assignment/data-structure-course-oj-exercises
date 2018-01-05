@@ -8,6 +8,210 @@
 #include <sstream>
 
 template <typename VertexElem, typename EdgeWeight>
+class MinSpanTree;
+
+typedef int ufsize;
+const ufsize defaultSize = 100;
+class UFSets
+{
+	int * arr;
+	int size;
+public :
+	UFSets(ufsize size_ = defaultSize)
+	{
+		size = size_;
+		arr = new int[size];
+		for (size_t i = 0; i < size; i++)
+		{
+			arr[i] = -1;
+		}
+	}
+
+	void uni(int r1, int r2) //Union
+	{
+		arr[r1] += arr[r2];
+		arr[r2] = r1;
+	}
+
+	int find(int x)
+	{
+		while (arr[x] >= 0)
+		{
+			x = arr[x];
+		}
+		return x;
+	}
+
+};
+
+typedef enum { MINHEAP, MAXHEAP } HeapType;
+typedef enum { LESS, EQUAL, GREATER } Compare;
+
+const size_t defaultHeapCapacity = 10;
+
+
+template <typename E>
+class Heap
+{
+public:
+	E* arr;
+	size_t capacity;
+	size_t n;
+	HeapType type;
+
+	Compare compare(const E& e1, const E& e2)
+	{
+		if (type == MINHEAP)
+		{
+			return e1 > e2 ? GREATER : e1 == e2 ? EQUAL : LESS;
+		}
+		else
+		{
+			return e1 < e2 ? GREATER : e1 == e2 ? EQUAL : LESS;
+		}
+	}
+
+	Heap(HeapType t = MINHEAP, size_t hc = defaultHeapCapacity)
+	{
+		type = t;
+		capacity = hc;
+		arr = new E[hc];
+		n = 0;
+	}
+
+	void swap(size_t i1, size_t i2)
+	{
+		E tmp;
+		tmp = arr[i1];
+		arr[i1] = arr[i2];
+		arr[i2] = tmp;
+	}
+
+	void insert(const E& e)
+	{
+		if (n == capacity)
+		{
+			throw "CAPACITY NOT ENOUGH";
+		}
+		arr[n++] = e;
+		shiftUp();
+	}
+
+	void insert_competition(const E& e)
+	{
+		size_t maxIndex = n;
+		if (n == capacity)
+		{
+			for (size_t i = n - 1; i > n / 2 - 1; i--)
+			{
+				if (maxIndex == n || compare(arr[maxIndex], arr[i]) == LESS)
+					maxIndex = i;
+			}
+
+			if (compare(arr[maxIndex], e) == GREATER)
+			{
+				arr[maxIndex] = e;
+				shiftUp(maxIndex);
+			}
+
+		}
+		else
+		{
+			arr[n++] = e;
+			shiftUp();
+		}
+
+
+	}
+
+	void shiftDown(size_t from)
+	{
+		if (n == 0)
+			return;
+		size_t cur = from;
+		size_t minNode;
+		E curE = arr[cur];
+		while (cur * 2 + 1 < n)
+		{
+			minNode = cur * 2 + 1;
+			if (cur * 2 + 2 < n && compare(arr[cur * 2 + 2], arr[cur * 2 + 1]) == LESS)
+				minNode++;
+
+			if (compare(arr[minNode], curE) == LESS)
+			{
+				arr[cur] = arr[minNode];
+				cur = minNode;
+			}
+			else break;
+		}
+		arr[cur] = curE;
+	}
+
+	void shiftUp(size_t i = SIZE_MAX)
+	{
+		if (n == 0)
+			return;
+		size_t curparent, cur;
+		if (i == SIZE_MAX)
+		{
+			curparent = n / 2 - 1;
+			cur = n - 1;
+		}
+		else
+		{
+			curparent = (i - 1) / 2;
+			cur = i;
+		}
+
+		E curE = arr[cur];
+		while (cur > 0 && curparent >= 0)
+		{
+			if (compare(arr[curparent], curE) == GREATER)
+			{
+				arr[cur] = arr[curparent];
+				cur = curparent;
+				curparent = (cur - 1) / 2;
+			}
+			else break;
+		}
+		arr[cur] = curE;
+	}
+
+	void print(std::ostream &out)
+	{
+		for (size_t i = 0; i < n; i++)
+		{
+			if (i != 0)
+				out << " ";
+
+			out << arr[i];
+		}
+		out << std::endl;
+	}
+
+	E cut_top()
+	{
+		E top = arr[0];
+		if (n == 0)
+			throw "HEAP IS EMPTY";
+		if (n == 1)
+		{
+			n = 0;
+			return arr[0];
+		}
+		arr[0] = arr[--n];
+		shiftDown(0);
+		return top;
+	}
+
+	~Heap()
+	{
+		if (arr)
+			delete[] arr;
+	}
+};
+
+template <typename VertexElem, typename EdgeWeight>
 class Graph
 {
 public:
@@ -53,7 +257,7 @@ class Matrix
 {
 private:
 	E * matrix_array;
-	
+
 public:
 	size_t rows;
 	size_t cols;
@@ -72,7 +276,7 @@ public:
 		this->rows = rows;
 		this->cols = cols;
 
-		if(arr)
+		if (arr)
 #ifdef _MSC_VER
 			memcpy_s(matrix_array, sizeof(E) * rows * cols, arr, sizeof(E) * rows * cols);
 #else
@@ -123,7 +327,7 @@ struct Node
 	}
 	~Node()
 	{
-		if(next)
+		if (next)
 			delete next;
 	}
 };
@@ -172,9 +376,9 @@ template <typename VertexElem, typename EdgeWeight>
 class Graph_Matrix : public Graph<VertexElem, EdgeWeight>
 {
 private:
-	Matrix<EdgeWeight> e;  
+	Matrix<EdgeWeight> e;
 	VertexElem * v;
-	
+
 public:
 	Graph_Matrix(bool directed, bool weighted, EdgeWeight defaultWeight)
 	{
@@ -200,11 +404,11 @@ public:
 	~Graph_Matrix()
 	{
 		if (v)
-			delete [] v;
+			delete[] v;
 	}
 
 	template <typename VertexElem_, typename EdgeWeight_>
-	friend std::istream& operator>> (std::istream &in, Graph_Matrix<VertexElem_, EdgeWeight_> &gm);
+	friend std::istream& operator >> (std::istream &in, Graph_Matrix<VertexElem_, EdgeWeight_> &gm);
 	template <typename VertexElem_, typename EdgeWeight_>
 	friend std::ostream& operator << (std::ostream &out, Graph_Matrix<VertexElem_, EdgeWeight_> &gm);
 
@@ -216,6 +420,46 @@ public:
 				out << ' ';
 			out << v[i];
 		}
+	}
+
+	VertexElem &getVertex(size_t i)
+	{
+		if (i < Graph<VertexElem, EdgeWeight>::vertexNum)
+			return v[i];
+		else
+			throw "VERTEX OUT OF RANGE";
+	}
+
+	size_t firstNeighbor(size_t i)
+	{
+		size_t x;
+		for (x = 0; x < Graph<VertexElem, EdgeWeight>::vertexNum; x++)
+		{
+			if (e[i][x] != 0)
+			{
+				break;
+			}
+		}
+		if (x == Graph<VertexElem, EdgeWeight>::vertexNum)
+			return SIZE_MAX;
+		else
+			return x;
+	}
+
+	size_t nextNeighbor(size_t i, size_t cur)
+	{
+		size_t x;
+		for (x = cur + 1; x < Graph<VertexElem, EdgeWeight>::vertexNum; x++)
+		{
+			if (e[i][x] != 0)
+			{
+				break;
+			}
+		}
+		if (x == Graph<VertexElem, EdgeWeight>::vertexNum)
+			return SIZE_MAX;
+		else
+			return x;
 	}
 };
 
@@ -239,7 +483,7 @@ public:
 	~Graph_List()
 	{
 		if (v)
-			delete [] v;
+			delete[] v;
 	}
 
 	size_t indexOfVertex(const VertexElem &vtx) const
@@ -266,8 +510,146 @@ public:
 			out << v[i].v;
 		}
 	}
+
+	VertexElem &getVertex(size_t i)
+	{
+		if (i < Graph<VertexElem, EdgeWeight>::vertexNum)
+			return v[i].v;
+		else
+			throw "VERTEX OUT OF RANGE";
+	}
+
+	size_t firstNeighbor(size_t i)
+	{
+		if (v[i].adjV == NULL)
+			return SIZE_MAX;
+		return v[i].adjV->data.vi;
+	}
+
+	size_t nextNeighbor(size_t i, size_t cur)
+	{
+		if (v[i].adjV == NULL)
+			return SIZE_MAX;
+		auto currAdjV = v[i].adjV;
+		while (currAdjV && cur != currAdjV->data.vi)
+		{
+			currAdjV = currAdjV->next;
+		}
+		if (currAdjV == NULL || currAdjV->next == NULL)
+			return SIZE_MAX;
+		return currAdjV->next->data.vi;
+	}
+	
+	friend class MinSpanTree<VertexElem, EdgeWeight>;
 };
 
+template <typename EdgeWeight>
+class MSTEdge
+{
+public:
+	size_t vs;
+	size_t ve;
+	EdgeWeight e;
+
+	MSTEdge() = default;
+
+	MSTEdge(size_t vs_, size_t ve_, EdgeWeight e_)
+	{
+		vs = vs_;
+		ve = ve_;
+		e = e_;
+	}
+
+	void set(size_t vs_, size_t ve_, EdgeWeight e_)
+	{
+		vs = vs_;
+		ve = ve_;
+		e = e_;
+	}
+
+	bool operator>=(const MSTEdge<EdgeWeight> &e2)const { return e >= e2.e; }
+	bool operator<=(const MSTEdge<EdgeWeight> &e2)const { return e <= e2.e; }
+	bool operator==(const MSTEdge<EdgeWeight> &e2)const { return e == e2.e; }
+	bool operator<(const MSTEdge<EdgeWeight> &e2)const { return e < e2.e; }
+	bool operator>(const MSTEdge<EdgeWeight> &e2)const { return e > e2.e; }
+};
+
+template <typename VertexElem, typename EdgeWeight>
+class MinSpanTree
+{
+public:
+	MSTEdge<EdgeWeight> *arr;
+	size_t size;
+	size_t n;
+
+	MinSpanTree(size_t size_)
+	{
+		init(size_);
+	}
+
+	void init(size_t size_)
+	{
+		size = size_;
+		arr = new MSTEdge<EdgeWeight>[size];
+		n = 0;
+	}
+
+	MinSpanTree(const Graph_List<VertexElem, EdgeWeight> &g)
+	{
+		init(g.vertexNum);
+		Heap<MSTEdge<EdgeWeight>> h(MINHEAP, g.vertexNum * g.vertexNum);
+		for (size_t i = 0; i < g.vertexNum; i++)
+		{
+			auto p = g.v[i].adjV;
+			while (p)
+			{
+				//insert(i, p->data.vi, p->data.we);
+				h.insert(MSTEdge<EdgeWeight>(i, p->data.vi, p->data.we));
+				p = p->next;
+			}
+		}
+
+		MSTEdge<EdgeWeight> currEdge;
+		UFSets u(static_cast<ufsize>(g.vertexNum));
+		int vsRoot, veRoot;
+		while (h.n != 0)
+		{
+			currEdge = h.cut_top();
+			vsRoot = u.find(static_cast<ufsize>(currEdge.vs));
+			veRoot = u.find(static_cast<ufsize>(currEdge.ve));
+			if (vsRoot != veRoot)
+			{
+				insert(currEdge);
+				u.uni(vsRoot, veRoot);
+			}
+		}
+	}
+
+	void insert(size_t vs, size_t ve, EdgeWeight e)
+	{
+		arr[n++].set(vs, ve, e);
+	}
+
+	void insert(MSTEdge<EdgeWeight> mstn)
+	{
+		arr[n++] = mstn;
+	}
+
+	EdgeWeight totalWeight()
+	{
+		EdgeWeight e = EdgeWeight();
+		for (size_t i = 0; i < n; i++)
+		{
+			e += arr[i].e;
+		}
+		return e;
+	}
+
+	~MinSpanTree()
+	{
+		delete[]arr;
+	}
+};
 
 
 typedef enum { NONE, DIRECTED, DIRECTED_NET, UNDIRECTED, UNDIRECTED_NET } GraphType;
@@ -277,43 +659,22 @@ std::istream & operator >> (std::istream & in, Graph_Matrix<VertexElem, EdgeWeig
 {
 	if (gm.v)
 		delete[]gm.v;
-	
-	GraphType gt;
-	in >> reinterpret_cast<unsigned &>(gt);
 
-	switch (gt)
-	{
-		case 1:
-			gm.setDirected(true);
-			gm.setWeighted(false);
-			gm.setNonDirectWeight(1);
-			break;
-		case 2:
-			gm.setDirected(true);
-			gm.setWeighted(true);
-			break;
-		case 3:
-			gm.setDirected(false);
-			gm.setWeighted(false);
-			gm.setNonDirectWeight(1);
-			break;
-		case 4:
-			gm.setDirected(false);
-			gm.setWeighted(true);
-			break;
-	}
+	gm.setDirected(false);
+	gm.setWeighted(true);
+	gm.setNonDirectWeight(1);
 
 	size_t vCnt, eCnt;
 	in >> vCnt >> eCnt;
 
 	gm.vertexNum = vCnt;
-	
+
 	gm.v = new VertexElem[vCnt];
 	gm.e.init(vCnt, vCnt);
-	
+
 	for (size_t i = 0; i < vCnt; i++)
 	{
-		in >> gm.v[i];
+		gm.v[i] = static_cast<VertexElem>(i);
 	}
 
 	VertexElem vS, vE;
@@ -328,7 +689,7 @@ std::istream & operator >> (std::istream & in, Graph_Matrix<VertexElem, EdgeWeig
 		{
 			in >> eW;
 		}
-		
+
 		gm.e[gm.indexOfVertex(vS)][gm.indexOfVertex(vE)] = eW;
 		if (!gm.directed)
 		{
@@ -338,43 +699,15 @@ std::istream & operator >> (std::istream & in, Graph_Matrix<VertexElem, EdgeWeig
 	return in;
 }
 
-template<typename VertexElem_, typename EdgeWeight_>
-std::ostream & operator<<(std::ostream & out, Graph_Matrix<VertexElem_, EdgeWeight_>& gm)
-{
-	gm.e.print(out);
-	return out;
-}
-
 template <typename VertexElem, typename EdgeWeight>
 std::istream & operator >> (std::istream & in, Graph_List<VertexElem, EdgeWeight> &ga)
 {
 	if (ga.v)
 		delete[]ga.v;
 
-	GraphType gt;
-	in >> reinterpret_cast<unsigned &>(gt);
-
-	switch (gt)
-	{
-		case 1:
-			ga.setDirected(true);
-			ga.setWeighted(false);
-			ga.setNonDirectWeight(1);
-			break;
-		case 2:
-			ga.setDirected(true);
-			ga.setWeighted(true);
-			break;
-		case 3:
-			ga.setDirected(false);
-			ga.setWeighted(false);
-			ga.setNonDirectWeight(1);
-			break;
-		case 4:
-			ga.setDirected(false);
-			ga.setWeighted(true);
-			break;
-	}
+	ga.setDirected(false);
+	ga.setWeighted(true);
+	ga.setNonDirectWeight(1);
 
 	size_t vCnt, eCnt;
 	in >> vCnt >> eCnt;
@@ -386,7 +719,7 @@ std::istream & operator >> (std::istream & in, Graph_List<VertexElem, EdgeWeight
 
 	for (size_t i = 0; i < vCnt; i++)
 	{
-		in >> ga.v[i].v;
+		ga.v[i].v = static_cast<VertexElem>(i);
 	}
 
 	VertexElem vS, vE;
@@ -401,6 +734,7 @@ std::istream & operator >> (std::istream & in, Graph_List<VertexElem, EdgeWeight
 	for (size_t i = 0; i < eCnt; i++)
 	{
 		in >> vS >> vE;
+		vS--, vE--;
 		vsi = ga.indexOfVertex(vS);
 		vei = ga.indexOfVertex(vE);
 		if (ga.weighted)
@@ -429,24 +763,13 @@ std::istream & operator >> (std::istream & in, Graph_List<VertexElem, EdgeWeight
 	return in;
 }
 
-template<typename VertexElem_, typename EdgeWeight_>
-std::ostream & operator<<(std::ostream & out, Graph_List<VertexElem_, EdgeWeight_>& ga)
-{
-	for (size_t i = 0; i < ga.vertexNum; i++)
-	{
-		ga.v[i].print(out, ga.weighted);
-		out << std::endl;
-	}
-	return out;
-}
-
 #define FS_INFILE
 //#define FS_OUTFILE
 int main()
 {
 #if(defined(_FS_DEBUG) && defined(FS_INFILE))
 	std::ifstream f0;
-	f0.open("p1.txt", std::ios::in);
+	f0.open("ap1.txt", std::ios::in);
 	auto cinbackup = std::cin.rdbuf();
 	std::cin.set_rdbuf(f0.rdbuf());
 #endif
@@ -459,32 +782,13 @@ int main()
 	std::cout.set_rdbuf(f1.rdbuf());
 #endif
 
-	std::stringstream mem;
-	
-	while (!std::cin.eof())
+	if (1)
 	{
-		mem.put(std::cin.get());
+		Graph_List<int, int> g;
+		std::cin >> g;
+		MinSpanTree<int, int> mst(g);
+		std::cout << mst.totalWeight();
 	}
-
-	mem.seekg(std::ios::beg);
-	Graph_Matrix<char, int> g0;
-	//Graph_Adj<char, int> g;
-	mem >> g0;
-
-	g0.printVertex(std::cout);
-	std::cout << std::endl;
-
-	std::cout << g0;
-
-	mem.seekg(std::ios::beg);
-	//Graph_Matrix<char, int> g;
-	Graph_List<char, int> g1;
-	mem >> g1;
-
-	//g1.printVertex(std::cout);
-	//std::cout << std::endl;
-
-	std::cout << g1;
 
 
 #if(defined(_FS_DEBUG) && defined(FS_INFILE))
