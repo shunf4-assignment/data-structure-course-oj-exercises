@@ -363,9 +363,10 @@ public:
 
 		for (size_t i = 0; i < Graph<VertexElem, EdgeWeight>::vertexNum; i++)
 		{
-			if (visited[i] == false)
+			size_t j = this->vertexNum - 1 - i;
+			if (visited[j] == false)
 			{
-				succeed = succeed && DFS_TopoSort_do(i, visited, vertexSeqP, true);
+				succeed = succeed && DFS_TopoSort_do(j, visited, vertexSeqP, true);
 			}
 		}
 		delete[] visited;
@@ -398,9 +399,23 @@ public:
 
 		visited[i] = VISITING;
 
-		size_t currConnVert = this->firstNeighbor(i);
+		//size_t currConnVert = this->firstNeighbor(i);
+		size_t currConnVert, k;
+		for ( k = 0; k < this->vertexNum; k++)
+		{
+			currConnVert = this->vertexNum - 1 - k;
+			auto p = v[i].adjV;
+			while (p)
+			{
+				if (p->data.vi == currConnVert)
+					break;
+				p = p->next;
+			}
+			if (p != NULL)
+				break;
+		}
 
-		while (currConnVert != SIZE_MAX)
+		while (k != this->vertexNum)
 		{
 			if (visited[currConnVert] == NOTVISITED)
 			{
@@ -412,7 +427,21 @@ public:
 				circled = true;
 				return false;
 			}
-			currConnVert = this->nextNeighbor(i, currConnVert);
+			//currConnVert = this->nextNeighbor(i, currConnVert);
+			
+			for (k++; k < this->vertexNum; k++)
+			{
+				currConnVert = this->vertexNum - 1 - k;
+				auto p = v[i].adjV;
+				while (p)
+				{
+					if (p->data.vi == currConnVert)
+						break;
+					p = p->next;
+				}
+				if (p != NULL)
+					break;
+			}
 		}
 
 		visited[i] = VISITED;
@@ -448,7 +477,7 @@ public:
 					earliest[p->data.vi] = earliest[topoSeq[i]] + p->data.we;
 				}
 				p = p->next;
-			}
+			} 
 		}
 
 		out << (latest[topoSeq[this->vertexNum - 1]] = earliest[topoSeq[this->vertexNum - 1]]) << std::endl;
@@ -474,40 +503,37 @@ public:
 			if (earliest[topoSeq[i]] == latest[topoSeq[i]])
 			{
 				critV[topoSeq[i]] = true;
+				//std::cout << topoSeq[i] + 1 <<
+					" ";
 			}
 			
 		}
+		//std::cout << std::endl;
+		size_t curVI = 0;
+		while (curVI < this->vertexNum && critV[topoSeq[curVI]] == false)
+			curVI++;
+		size_t curS = topoSeq[curVI];
 
-		size_t currVI = 0;
-		size_t currVS = 0;
-		while (true)
+		while (curVI < this->vertexNum)
 		{
-			currVS = topoSeq[currVI];
-			auto p = v[currVS].adjV;
-			while (true) {
-				p = v[currVS].adjV;
-				currVI++;
-				while (currVI < this->vertexNum && !critV[topoSeq[currVI]])
-					currVI++;
-				if (currVI == this->vertexNum)
-					break;
-				while (p)
+			curVI++;
+			while (curVI < this->vertexNum && critV[topoSeq[curVI]] == false)
+				curVI++;
+			auto p = v[curS].adjV;
+			while (p)
+			{
+				if (p->data.vi == topoSeq[curVI])
 				{
-					if (p->data.vi == topoSeq[currVI])
-					{
-						out << v[currVS].v + 1 << "->" << v[p->data.vi].v + 1 << std::endl;
-						break;
-					}
-					p = p->next;
-				}
-				if (p != NULL)
 					break;
+				}
+				p = p->next;
 			}
-			if (currVI == this->vertexNum)
-				break;
-			currVS = p->data.vi;
+			if (p != NULL)
+			{
+				out << v[curS].v +1 << "->" << v[p->data.vi].v +1 << std::endl;
+				curS = p->data.vi;
+			}
 		}
-
 		delete[] earliest;
 		delete[] latest;
 		delete[] critV;
