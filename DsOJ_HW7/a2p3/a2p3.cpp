@@ -39,8 +39,7 @@ public:
 		h %= size;
 		hBackup = h;
 		size_t lookupCount = 1;
-		if (arr[h].data != e)
-		{
+		
 			if (arr[h].cnt == 0)
 			{
 				arr[h].cnt++;
@@ -49,15 +48,24 @@ public:
 			else
 			{
 				//Collision
+#ifdef _FS_DEBUG
+				std::cout << h;
+#endif
 				while ((arr[h].data != e && arr[h].cnt != 0))
 				{
 					h += 1;
 					h %= size;
 					lookupCount++;
+#ifdef _FS_DEBUG
+					std::cout << "=" <<lookupCount<< "=>" << h;
+#endif
 					if (hBackup == h)
 						break;
 				}
-				if (hBackup == h)
+#ifdef _FS_DEBUG
+				std::cout << std::endl;
+#endif
+				if (lookupCount != 1 && hBackup == h)
 				{
 					throw "CANNOT FIND A PROPER PLACE";
 				}
@@ -74,16 +82,13 @@ public:
 					}
 				}
 			}
-		}
-		else
-		{
-			arr[h].cnt++;
-		}
+		
+		
 		addrRecv = h;
 		return lookupCount;
 	}
 
-	size_t search_rSRCnt(const E&e, size_t &addrRecv)
+	size_t search_rSRCnt(const E&e, size_t &addrRecv) //wrong
 	{
 		size_t h, hBackup;
 		h = hashFunc(e);
@@ -98,7 +103,7 @@ public:
 				h += 1;
 				h %= size;
 				lookupCount++;
-				if (hBackup == h)
+				if (hBackup == h && lookupCount != 1)
 					break;
 			}
 			if (hBackup == h)
