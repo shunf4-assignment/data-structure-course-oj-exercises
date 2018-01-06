@@ -451,6 +451,66 @@ public:
 		return true;
 	}
 
+	bool Trim_TopoSort_getEarly(size_t *topoSeq)
+	{
+		int *inDegreeList = new int[this->vertexNum];
+		for (size_t i = 0; i < this->vertexNum; i++)
+		{
+			inDegreeList[i] = 0;
+		}
+		for (size_t i = 0; i < this->vertexNum; i++)
+		{
+			auto p = v[i].adjV;
+			while (p)
+			{
+				inDegreeList[p->data.vi]++;
+				p = p->next;
+			}
+		}
+		size_t currSeqIndex = 0;
+		bool cycle = false;
+		while (true)
+		{
+			bool allNegative = true;
+			size_t i;
+			for ( i = 0; i < this->vertexNum; i++)
+			{
+				if (inDegreeList[i] > 0)
+				{
+					allNegative = false;
+				}
+				if (inDegreeList[i] == 0)
+				{
+					inDegreeList[i]--;
+					auto p = v[i].adjV;
+					while (p)
+					{
+						inDegreeList[p->data.vi]--;
+						p = p->next;
+					}
+					topoSeq[currSeqIndex++] = i;
+					break;
+				}
+			}
+			if (i == this->vertexNum)
+			{
+				if (!allNegative)
+					cycle = true;
+				break;
+			}
+		}
+		delete[]inDegreeList;
+
+		if (cycle)
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
 	void printCritPath(std::ostream &out, size_t *topoSeq)
 	{
 		if (this->vertexNum == 0)
@@ -480,6 +540,14 @@ public:
 			} 
 		}
 
+		if (0) {
+			for (size_t i = 0; i < this->vertexNum; i++)
+			{
+				out << i << " : " << earliest[i] << std::endl;
+			}
+			out << std::endl;
+		}
+
 		out << (latest[topoSeq[this->vertexNum - 1]] = earliest[topoSeq[this->vertexNum - 1]]) << std::endl;
 		//get latest time of vertexes
 		size_t ri;
@@ -497,41 +565,136 @@ public:
 			}
 		}
 
+		if (0) {
+			for (size_t i = 0; i < this->vertexNum; i++)
+			{
+				out << i << " : " << latest[i] << std::endl;
+			}
+			out << std::endl;
+		}
 
 		for (size_t i = 0; i < this->vertexNum; i++)
 		{
 			if (earliest[topoSeq[i]] == latest[topoSeq[i]])
 			{
 				critV[topoSeq[i]] = true;
-				//std::cout << topoSeq[i] + 1 <<
-					" ";
 			}
-			
 		}
-		//std::cout << std::endl;
-		size_t curVI = 0;
-		while (curVI < this->vertexNum && critV[topoSeq[curVI]] == false)
-			curVI++;
-		size_t curS = topoSeq[curVI];
 
-		while (curVI < this->vertexNum)
-		{
-			curVI++;
-			while (curVI < this->vertexNum && critV[topoSeq[curVI]] == false)
-				curVI++;
-			auto p = v[curS].adjV;
-			while (p)
+		size_t curV = SIZE_MAX;
+		size_t nextV = 0;
+
+		if (1) {
+			for (size_t i = 0; i < this->vertexNum; i++)
 			{
-				if (p->data.vi == topoSeq[curVI])
+				//if (critV[i])
+				if (true)
+				{
+					auto p = v[i].adjV;
+					while (p)
+					{
+						if (earliest[i] == latest[p->data.vi] - p->data.we)
+						{
+							out << v[i].v + 1 << "->" << v[p->data.vi].v + 1 << std::endl;
+						}
+						p = p->next;
+					}
+				}
+			}
+			out << std::endl;
+		}
+		if (0) {
+			for (size_t i = 0; i < this->vertexNum; i++)
+			{
+				if (!critV[topoSeq[i]])
+					continue;
+				curV = topoSeq[i];
+				break;
+			}
+			while (true) {
+				auto p = v[curV].adjV;
+				while (p)
+				{
+					if (critV[p->data.vi])
+					{
+						nextV = p->data.vi;
+						out << v[curV].v + 1 << "->" << v[nextV].v + 1 << std::endl;
+						break;
+					}
+					p = p->next;
+				}
+				if (p)
+				{
+					curV = nextV;
+				}
+				else
 				{
 					break;
 				}
-				p = p->next;
 			}
-			if (p != NULL)
+		}
+
+		size_t curVI;
+		size_t curS;
+
+		if (0)
+		{
+			out << std::endl;
+			curVI = 0;
+			while (curVI < this->vertexNum && critV[topoSeq[curVI]] == false)
+				curVI++;
+			curS = topoSeq[curVI];
+
+			while (curVI < this->vertexNum)
 			{
-				out << v[curS].v +1 << "->" << v[p->data.vi].v +1 << std::endl;
-				curS = p->data.vi;
+				curVI++;
+				while (curVI < this->vertexNum && critV[topoSeq[curVI]] == false)
+					curVI++;
+				auto p = v[curS].adjV;
+				while (p)
+				{
+					if (p->data.vi == topoSeq[curVI])
+					{
+						break;
+					}
+					p = p->next;
+				}
+				if (p != NULL)
+				{
+					out << v[curS].v + 1 << "->" << v[p->data.vi].v + 1 << std::endl;
+					curS = p->data.vi;
+				}
+			}
+			out << std::endl;
+		}
+
+		if (0) {
+			
+			curVI = 0;
+			while (curVI < this->vertexNum && critV[topoSeq[curVI]] == false)
+				curVI++;
+			curS = topoSeq[curVI];
+
+			while (true)
+			{
+				size_t maxVI = SIZE_MAX;
+
+				auto p = v[curS].adjV;
+				while (p)
+				{
+					if (critV[p->data.vi])
+					{
+						if (maxVI == SIZE_MAX || p->data.vi > maxVI)
+							maxVI = p->data.vi;
+					}
+					p = p->next;
+				}
+				if (maxVI != SIZE_MAX)
+				{
+					out << v[curS].v + 1 << "->" << v[maxVI].v + 1 << std::endl;
+					curS = maxVI;
+				}
+				else break;
 			}
 		}
 		delete[] earliest;
@@ -677,23 +840,25 @@ int main()
 		Graph_List<int, int> g;
 		std::cin >> g;
 		size_t *seq = new size_t[g.vertexNum];
-		bool succeed = g.DFS_TopoSort(seq);
+		bool succeed = g.Trim_TopoSort_getEarly(seq);
+		//bool succeed = g.DFS_TopoSort(seq);
 		if (!succeed)
 		{
 			std::cout << 0 << std::endl;
 		}
 		else
 		{
-			/*if (succeed)
-			{
-				for (size_t i = 0; i < g.vertexNum; i++)
+			if(0)
+				if (succeed)
 				{
-					if (i)
-						std::cout << " ";
-					std::cout << g.getVertex(seq[i]) + 1;
+					for (size_t i = 0; i < g.vertexNum; i++)
+					{
+						if (i)
+							std::cout << " ";
+						std::cout << g.getVertex(seq[i]) + 1;
+					}
+					std::cout << std::endl;
 				}
-				std::cout << std::endl;
-			}*/
 			g.printCritPath(std::cout, seq);
 		}
 		/**/
