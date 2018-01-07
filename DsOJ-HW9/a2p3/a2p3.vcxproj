@@ -21,8 +21,11 @@
   <ItemGroup>
     <ClCompile Include="a2p3.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="a2p3.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{78846658-144d-4478-ba3f-368257a868fb}</ProjectGuid>
+    <ProjectGuid>{5de4c650-67ca-4521-a6aa-b2ff0f08f85a}</ProjectGuid>
     <RootNamespace>a2p3</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>

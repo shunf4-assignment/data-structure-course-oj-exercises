@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <fstream>
+#include <cmath>
 
 template <typename Elem>
 class LinkList;
@@ -120,7 +121,7 @@ public:
 	//Copy-Constructor
 	LinkList(const LinkList< Elem> &source)
 	{
-		this->LinkList();
+		sentinel = new LinkNode< Elem>();
 		LinkNode< Elem> * currNodeP = sentinel;
 		decltype(currNodeP) currNewP, sourceNextP = source.sentinel->next;
 		while (sourceNextP != NULL && (this->sentinel->next == NULL || sourceNextP != source.sentinel->next))
@@ -376,11 +377,11 @@ public:
 		}
 	}
 
-	//Copy-Constructor
-	OrderedLinkList(const OrderedLinkList< Elem> &source)
-	{
-		this->LinkList(static_cast<const LinkList< Elem> &>(source));
-	}
+	////Copy-Constructor
+	//OrderedLinkList(const OrderedLinkList< Elem> &source)
+	//{
+	//	this->LinkList< Elem>::LinkList(static_cast<const LinkList< Elem> &>(source));
+	//}
 
 	void insert(const Elem &x)
 	{
@@ -457,19 +458,10 @@ public:
 	}
 };
 
-class Polynomial : private OrderedLinkList<PolynomialTerm>
+class Polynomial : public OrderedLinkList<PolynomialTerm>
 {
 	using Elem = PolynomialTerm;
 public:
-	Polynomial()
-	{
-		this->OrderedLinkList<PolynomialTerm>::OrderedLinkList();
-	}
-
-	~Polynomial()
-	{
-		this->OrderedLinkList<PolynomialTerm>::~OrderedLinkList();
-	}
 
 	LinkNode<PolynomialTerm>* insertAfterThisNode(LinkNode<PolynomialTerm> *thisNode, double coef, int expn)
 	{
@@ -478,9 +470,100 @@ public:
 		example.expn = expn;
 		example.coef = coef;
 		LinkNode< Elem> *currNewP = new LinkNode< Elem>(example);
+		currNewP->next = thisNode->next;
 		thisNode->next = currNewP;
-		currNewP->next = thisNodeResult.pointer;
+		
 		return currNewP;
+	}
+
+	void combine()
+	{
+		auto currPrevP = this->sentinel;
+		auto currPrevP2 = this->sentinel;
+		decltype(currPrevP) tmpP;
+		if (currPrevP->next == NULL)
+			return;
+		currPrevP2 = currPrevP2->next;
+
+		while (currPrevP->next)
+		{
+			if (currPrevP2->next != NULL && currPrevP->next->dataField == currPrevP2->next->dataField)
+			{
+				currPrevP->next->dataField.coef += currPrevP2->next->dataField.coef;
+				tmpP = currPrevP->next->next;
+				currPrevP->next->next = currPrevP2->next->next;
+				delete tmpP;
+				currPrevP2 = currPrevP->next;
+			}
+			else
+			{
+				//if (currPrevP->next->dataField.coef == 0)
+				if (fabs(currPrevP->next->dataField.coef) < 1e-4)
+				{
+					tmpP = currPrevP->next;
+					currPrevP->next = currPrevP->next->next;
+					delete tmpP;
+					currPrevP2 = currPrevP->next;
+				}
+				else
+				{
+					currPrevP = currPrevP->next;
+					currPrevP2 = currPrevP->next;
+				}
+			}
+		}
+	}
+
+	Polynomial& operator+=(const Polynomial&p)
+	{
+		LinkNode< Elem> *currPrevP = p.sentinel;
+		while (currPrevP->next != NULL)
+		{
+			insert(currPrevP->next->dataField);
+			currPrevP = currPrevP->next;
+		}
+		combine();
+		return (*this);
+	}
+
+	Polynomial operator+(const Polynomial &p)
+	{
+		Polynomial q(*this);
+		q += p;
+		return q;
+	}
+
+	Polynomial operator*(const Polynomial &q)
+	{
+		Polynomial result;
+		auto p1 = this->sentinel;
+		auto p2 = q.sentinel;
+		PolynomialTerm t;
+		for (; p1->next; p1 = p1->next)
+		{
+			for (p2 = q.sentinel; p2->next; p2 = p2->next)
+			{
+				t.coef = p1->next->dataField.coef * p2->next->dataField.coef;
+				t.expn = p1->next->dataField.expn + p2->next->dataField.expn;
+				result.insert(t);
+			}
+			result.combine();
+		}
+		return result;
+	}
+
+	friend istream & operator >> (istream& in, Polynomial &);
+	friend ostream & operator << (ostream & in, const Polynomial& p);
+
+	double operator()(double x)
+	{
+		double result = 0;
+		auto p1 = this->sentinel;
+		for (; p1->next; p1 = p1->next)
+		{
+			result += p1->next->dataField.coef * pow(x, p1->next->dataField.expn);
+		}
+		return result;
 	}
 };
 
@@ -491,18 +574,53 @@ void printNum(int &n, unsigned i)
 	cout << n;
 }
 
+istream & operator >> (istream & in, Polynomial& p)
+{
+	unsigned num;
+	in >> num;
+	PolynomialTerm t;
+	for (size_t i = 0; i < num; i++)
+	{
+		in >> t.coef >> t.expn;
+		p.insert(t);
+	}
+	p.combine();
+	return in;
+}
+
+
+ostream & operator << (ostream & out, const Polynomial& p)
+{
+	auto currPrevP = p.sentinel;
+	if (currPrevP->next == NULL)
+	{
+		//out << 0 << endl;
+		return out;
+	}
+	while (currPrevP->next != NULL)
+	{
+		out << currPrevP->next->dataField.coef << " " << currPrevP->next->dataField.expn << endl;
+		currPrevP = currPrevP->next;
+	}
+	return out;
+}
+
 int main()
 {
 #ifdef _FS_DEBUG
 	FILE *f;
-	fopen_s(&f, "ap3.txt", "r");
-	freopen_s(&f, "ap3.txt", "r", stdin);
+	fopen_s(&f, "poly.txt", "r");
+	freopen_s(&f, "poly.txt", "r", stdin);
 	//ofstream f2;
 	//f2.open("Output.txt", ios::out);
 	//cout.set_rdbuf(f2.rdbuf());
 #endif
 	
-
+	Polynomial p;
+	double x;
+	cin >> p;
+	cin >> x;
+	cout << fixed << setprecision(1) << (p(x));
 
 #ifdef _FS_DEBUG
 	fclose(f);

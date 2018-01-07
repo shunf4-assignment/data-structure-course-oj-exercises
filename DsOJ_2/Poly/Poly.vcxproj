@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="Poly.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="poly.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{cc98ffe8-9b77-4738-837f-52fa04e159d6}</ProjectGuid>
     <RootNamespace>Poly</RootNamespace>
@@ -88,9 +91,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_FS_DEBUG</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

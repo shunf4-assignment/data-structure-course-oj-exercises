@@ -19,11 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="a2p3.cpp" />
+    <ClCompile Include="p2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="out.txt" />
+    <Text Include="p2.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{78846658-144d-4478-ba3f-368257a868fb}</ProjectGuid>
-    <RootNamespace>a2p3</RootNamespace>
+    <ProjectGuid>{d1cb81b6-7362-461c-b7d3-9031316094c6}</ProjectGuid>
+    <RootNamespace>p1</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
