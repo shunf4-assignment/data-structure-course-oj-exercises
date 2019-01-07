@@ -245,6 +245,7 @@ void print(T i, int index)
 	cout << i;
 }
 
+//入站序列换为出栈序列的递归部分
 SqList<string> * in2out_recursive(const string &inStr)
 {
 	// remember to delete it!
@@ -335,6 +336,7 @@ OrderedDeDupSqList<string> * in2out_old(string inStr)
 	return &finalList;
 }
 
+//入站序列换位出栈序列
 SqList<string> * in2out(string inStr)
 {
 	//此题要求按输入的顺序排，汗……

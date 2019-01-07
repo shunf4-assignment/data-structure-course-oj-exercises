@@ -11,8 +11,25 @@ using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
+using std::stringstream;
 
 typedef enum {STATOK, STATFULL, STATMISPLACE, STATEMPTY} status;
+
+std::ostream& operator<<(std::ostream&out, const status &s)
+{
+	switch (s)
+	{
+		case STATOK:
+			out << "正常"; break;
+		case STATFULL:
+			out << "表满"; break;
+		case STATMISPLACE:
+			out << "位置错"; break;
+		case STATEMPTY:
+			out << "表空"; break;
+	}
+	return out;
+}
 
 template <typename E>
 class SLL
@@ -27,7 +44,7 @@ public:
 	SLLNode *s;
 	int size;
 	int tail;
-
+	//构造函数
 	SLL(int size_)
 	{
 		size = size_;
@@ -46,7 +63,34 @@ public:
 		}
 		tail = 0;
 	}
-
+	//判断表满
+	bool isFull()
+	{
+		if (s[1].c == -1)
+		{
+			return true;
+		}
+		return false;
+	}
+	//判断表空
+	bool isEmpty()
+	{
+		if (s[0].c == -1)
+			return true;
+		return false;
+	}
+	//清除表
+	void clear()
+	{
+		if (tail != 0)
+		{
+			s[tail].c = s[1].c;
+			s[1].c = s[0].c;
+			s[0].c = -1;
+			tail = 0;
+		}
+	}
+	//增添
 	status append(const E &e)
 	{
 		if (s[1].c == -1)
@@ -62,7 +106,7 @@ public:
 		tail = allocMem;
 		return STATOK;
 	}
-
+	//插入
 	status insert(int no, const E &e)
 	{
 		if (no <= 0)
@@ -98,7 +142,7 @@ public:
 
 		return STATOK;
 	}
-
+	//删除
 	status del(int no, E& e)
 	{
 		if (no <= 0)
@@ -129,7 +173,7 @@ public:
 
 		return STATOK;
 	}
-
+	//查找
 	int search(const E &e)
 	{
 		if (s[0].c == -1)
@@ -150,10 +194,38 @@ public:
 		}
 		return -1;
 	}
-
+	//取元素
+	E& operator[](int pos)
+	{
+		int index = 0;
+		for (int i = 0; i < pos + 1; i++)
+		{
+			index = s[index].c;
+			if (index == -1)
+			{
+				throw STATMISPLACE;
+			}
+		}
+		return s[index].e;
+	}
+	//替换
+	status replace(int position, const E& e)
+	{
+		try {
+			(*this)[position - 1] = e;
+		}
+		catch (status &s)
+		{
+			return s;
+		}
+		
+		return STATOK;
+		
+	}
+	//输入
 	template <typename E_>
 	friend std::ostream & operator <<(std::ostream& out, const SLL<E_>& sll);
-
+	//打印状态
 	void print (std::ostream& out) const
 	{
 		int count = 0;
@@ -173,7 +245,7 @@ public:
 		if (count)
 			cout << endl;
 	}
-
+	//析构
 	~SLL()
 	{
 		delete[]s;
@@ -201,102 +273,140 @@ public:
 	}
 };
 
-#define FS_INFILE
-//#define FS_OUTFILE
+template <typename E>
+void inputTo(E &e)
+{
+	cin >> e;
+	cout << e << endl;
+}
+
+#define inputTo(e) inputTo<decltype(e)>(e)
+
+
 int main()
 {
-#if(defined(_FS_DEBUG) && defined(FS_INFILE))
-	std::ifstream f0;
-	f0.open("p1.txt", std::ios::in);
-	auto cinbackup = std::cin.rdbuf();
-	std::cin.set_rdbuf(f0.rdbuf());
-#endif
+	using std::stringstream;
+	stringstream s;
+	cin.set_rdbuf(s.rdbuf());
 
-#if(defined(_FS_DEBUG) && defined(FS_OUTFILE))
-
-	std::ofstream f1;
-	f1.open("out.txt", std::ios::out);
-	auto coutbackup = std::cout.rdbuf();
-	std::cout.set_rdbuf(f1.rdbuf());
-#endif
+	s << "9 5 Jan Feb Mar Apr May 2 Jun 7 Oct 4 1 Apr Jul Dec 1 1 Aug" << endl;
+	s.seekg(std::ios::beg);
 
 	int sllSize, itemCount;
-	cin >> sllSize >> itemCount;
+	cout << "请输入要建立的静态链表空间大小：" << endl;
+	inputTo(sllSize);
+	cout << "请输入要建立的静态链表元素个数：" << endl;
+	inputTo(itemCount);
+	
 	SLL<string_> sll(sllSize);
 	string_ str;
 	for (int i = 0; i < itemCount; i++)
 	{
-		cin >> str;
+		cout << "请输入第 " << i + 1 << " 个元素：" << endl;
+		inputTo(str);
 		sll.append(str);
 	}
+
+	cout << "当前静态链表情况：" << endl;
 	sll.print(cout);
 
 	status stat;
 
 	int insertNo;
 	string_ insertStr;
-	cin >> insertNo >> insertStr;
+	cout << "请输入要插入的位置、要插入的字符串：" << endl;
+	inputTo(insertNo);
+	inputTo(insertStr);
 	stat = sll.insert(insertNo, insertStr);
+	cout << "插入结果：" << endl << stat << endl;
 
-	switch (stat)
-	{
-		case STATOK:
-			cout << sll << endl;
-			break;
-		case STATFULL:
-			cout << "FULL" << endl;
-			break;
-		case STATMISPLACE:
-			cout << -1 << endl;
-			break;
-	}
+	cout << sll << endl;
+	sll.print(cout);
+
+	cout << "（第二次）请输入要插入的位置、要插入的字符串：" << endl;
+	inputTo(insertNo);
+	inputTo(insertStr);
+	stat = sll.insert(insertNo, insertStr);
+	cout << "插入结果：" << endl << stat << endl;
+	cout << sll << endl;
+	sll.print(cout);
 
 	int delNo;
 	string_ delStr;
-	cin >> delNo;
+	cout << "请输入要删除的位置：" << endl;
+	inputTo(delNo);
 	stat = sll.del(delNo, delStr);
-
-	switch (stat)
-	{
-		case STATOK:
-			cout << delStr << endl;
-			break;
-		case STATEMPTY:
-			cout << "EMPTY" << endl;
-			break;
-		case STATMISPLACE:
-			cout << -1 << endl;
-			break;
-	}
-	
-	string_ searchStr;
-	int searchNo;
-	cin >> searchStr;
-	searchNo = sll.search(searchStr);
-	cout << searchNo << endl;
-
-	string_ appendStr;
-	cin >> appendStr;
-	stat = sll.append(appendStr);
-	switch (stat)
-	{
-		case STATOK:
-			cout << sll << endl;
-			break;
-		case STATFULL:
-			cout << "FULL" << endl;
-			break;
-	}
-
+	cout << "结果：" << endl << stat << endl;
+	cout << "已经删除的字符串：" << delStr << endl;
+	cout << sll << endl;
 	sll.print(cout);
 
-#if(defined(_FS_DEBUG) && defined(FS_INFILE))
-	f0.close();
-#endif
+	cout << "（第二次）请输入要删除的位置：" << endl;
+	inputTo(delNo);
+	stat = sll.del(delNo, delStr);
+	cout << "结果：" << endl << stat << endl;
+	cout << "已经删除的字符串：" << delStr << endl;
+	cout << sll << endl;
+	sll.print(cout);
 
-#if(defined(_FS_DEBUG) && defined(FS_OUTFILE))
-	f1.close();
-#endif
+	string_ searchStr;
+	int searchNo;
+	cout << "请输入要查找的字符串：" << endl;
+	inputTo(searchStr);
+	searchNo = sll.search(searchStr);
+	cout << "若找到，返回第几个；否则输出-1：" << endl;
+	cout << searchNo << endl;
+	cout << "链表状态：" << endl;
+
+	if (searchNo != -1)
+	{
+		cout << "（第三次）在前次查找结果前插入，请输入要插入的字符串：" << endl;
+		inputTo(insertStr);
+		stat = sll.insert(searchNo, insertStr);
+		cout << "插入结果：" << endl << stat << endl;
+		cout << sll << endl;
+		sll.print(cout);
+
+		cout << "（第四次）在前次查找结果前插入，请输入要插入的字符串：" << endl;
+		inputTo(insertStr);
+		stat = sll.insert(searchNo, insertStr);
+		cout << "插入结果：" << endl << stat << endl;
+		cout << sll << endl;
+		sll.print(cout);
+	}
+
+	
+
+	int retrieveNo;
+	string_ retrieveStr;
+	cout << "请输入要获取的元素位置（从0开始）：" << endl;
+	inputTo(retrieveNo);
+	retrieveStr = sll[retrieveNo];
+	cout << "获取到的字符串：" << endl;
+	cout << retrieveStr << endl;
+
+	int replaceNo;
+	string_ replaceStr;
+	cout << "请输入要替换的元素位置（从1开始），要替换成的字符串：" << endl;
+	inputTo(replaceNo);
+	inputTo(replaceStr);
+	stat = sll.replace(replaceNo, replaceStr);
+	cout << "替换结果：" << endl;
+	cout << stat << endl;
+	cout << sll << endl;
+	sll.print(cout);
+
+	cout << "当前表空吗？" << endl << sll.isEmpty() << endl;
+	cout << "当前表满吗？" << endl << sll.isFull() << endl;
+
+	cout << "清除表" << endl;
+	sll.clear();
+	cout << sll << endl;
+	sll.print(cout);
+
+	cout << "当前表空吗？" << endl << sll.isEmpty() << endl;
+	cout << "当前表满吗？" << endl << sll.isFull() << endl;
+
 	return 0;
 }
 

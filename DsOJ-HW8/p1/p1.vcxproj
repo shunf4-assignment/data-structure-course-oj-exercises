@@ -19,11 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="p2.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="out.txt" />
-    <Text Include="p2.txt" />
+    <ClCompile Include="p1.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{d1cb81b6-7362-461c-b7d3-9031316094c6}</ProjectGuid>

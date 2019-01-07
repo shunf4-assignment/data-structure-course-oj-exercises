@@ -1,1 +1,68 @@
-({[}
+template <typename Elem>
+class LinkStack
+{
+private:
+	LinkList<Elem> list;
+public:
+	unsigned long length;
+	unsigned long capacity;
+
+public:
+	LinkStack()
+	{
+		list.clearList();
+		capacity = ULONG_MAX;
+		length = 0;
+	}
+
+	LinkStack(unsigned long capacity_)
+	{
+		list.clearList();
+		capacity = capacity_;
+		length = 0;
+	}
+
+	~LinkStack()
+	{
+
+	}
+
+	bool push(const Elem &x)
+	{
+		if (length + 1 > capacity)
+			return false;
+		list.insertHead(x);
+		length++;
+		return true;
+	}
+
+	(bool pop(Elem &receiver)
+	{
+		if (isEmpty())
+			return false;
+		list.getData(1, receiver);
+		list.deleteByNo(1);
+		length--;
+		return true;
+	}
+
+	bool pop()
+	{
+		if (isEmpty())
+			return false;
+		list.deleteByNo(1);
+		length--;
+		return true;
+	}
+
+	bool isEmpty()
+	{
+		return length == 0;
+		//	return list.sentinel->next == NULL;
+	}
+
+	void traverseInStack(void(*func)(Elem &e, unsigned int i))
+	{
+		list.traverse(func);
+	}
+};

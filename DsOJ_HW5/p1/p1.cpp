@@ -696,16 +696,15 @@ void print_tree(const char &n, unsigned level)
 	cout << setw(level * 5) << "" << n << endl;
 }
 
+#include <sstream>
 int main()
 {
-#ifdef _FS_DEBUG
-	FILE *f;
-	fopen_s(&f, "p1.txt", "r");
-	freopen_s(&f, "p1.txt", "r", stdin);
-	//ofstream f2;
-	//f2.open("Output.txt", ios::out);
-	//cout.set_rdbuf(f2.rdbuf());
-#endif
+	stringstream s;
+	cin.set_rdbuf(s.rdbuf());
+
+	s << "abc##d##ef### " << endl;
+	s.seekg(ios::beg);
+
 	using elem = char;
 	BinaryTree<elem> t;
 	
@@ -724,8 +723,5 @@ int main()
 	//t.inTraverse_printTree(print_tree);
 	t.inTraverse_printTree_nonRecursive(print_tree);
 
-#ifdef _FS_DEBUG
-	fclose(f);
-#endif
 	return 0;
 }

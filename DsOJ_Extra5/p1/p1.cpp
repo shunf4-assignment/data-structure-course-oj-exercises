@@ -391,14 +391,14 @@ public:
 
 int main()
 {
-#ifdef _FS_DEBUG
+//#ifdef _FS_DEBUG
 	FILE *f;
 	fopen_s(&f, "P1.txt", "r");
 	freopen_s(&f, "P1.txt", "r", stdin);
 	//ofstream f2;
 	//f2.open("Output.txt", ios::out);
 	//cout.set_rdbuf(f2.rdbuf());
-#endif
+//#endif
 	char testChar;
 	int currChar;
 	bool good = true;
@@ -486,8 +486,8 @@ int main()
 	{
 		cout << "yes" << endl;
 	}
-#ifdef _FS_DEBUG
+//#ifdef _FS_DEBUG
 	fclose(f);
-#endif
+//#endif
 	return 0;
 }

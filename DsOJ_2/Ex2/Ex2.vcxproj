@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="Ex2.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="E2.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0273d8ae-1841-46d1-982b-992f6a60ab93}</ProjectGuid>
     <RootNamespace>Ex2</RootNamespace>

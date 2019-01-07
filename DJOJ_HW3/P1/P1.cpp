@@ -5,7 +5,8 @@
 #include <string>
 #include <cstdlib>
 #include <fstream>
-#define ULONG_MAX static_cast<unsigned long>(-1)
+#include <sstream>
+#include <climits>
 using namespace std;
 template <typename Elem>
 class LinkList;
@@ -325,25 +326,26 @@ public:
 	unsigned long capacity;
 
 public:
+	//构造函数
 	LinkStack()
 	{
 		list.clearList();
 		capacity = ULONG_MAX;
 		length = 0;
 	}
-
+	//构造函数
 	LinkStack(unsigned long capacity_)
 	{
 		list.clearList();
 		capacity = capacity_;
 		length = 0;
 	}
-
+	//析构函数
 	~LinkStack()
 	{
 
 	}
-
+	//推入元素
 	bool push(const Elem &x)
 	{
 		if (length + 1 > capacity)
@@ -352,7 +354,7 @@ public:
 		length++;
 		return true;
 	}
-
+	//弹出元素
 	bool pop(Elem &receiver)
 	{
 		if (isEmpty())
@@ -362,13 +364,13 @@ public:
 		length--;
 		return true;
 	}
-
+	//栈空?
 	bool isEmpty()
 	{
 		return length == 0;
 	//	return list.sentinel->next == NULL;
 	}
-
+	//用func遍历栈
 	void traverseInStack(void(*func)(Elem &e, unsigned int i))
 	{
 		list.traverse(func);
@@ -382,58 +384,84 @@ void printNum(int &n, unsigned i)
 	cout << n;
 }
 
+template <typename E>
+void inputTo(E &e)
+{
+	cin >> e;
+	cout << e << endl;
+}
+
+#define inputTo(e) inputTo<decltype(e)>(e)
+
+
 int main()
 {
+	stringstream s;
+	cin.set_rdbuf(s.rdbuf());
 
-#ifdef _FS_DEBUG
-	FILE *f;
-	fopen_s(&f, "P1.txt", "r");
-	freopen_s(&f, "P1.txt", "r", stdin);
-	//ofstream f2;
-	//f2.open("Output.txt", ios::out);
-	//cout.set_rdbuf(f2.rdbuf());
-#endif
-	unsigned long n;
-	cin >> n;
-	LinkStack<int> l(n);
+	s << "4 \
+		pop \
+		push 10 \
+		push 2 \
+		push 3 \
+		pop \
+		pop \
+		push 1 \
+		push 2 \
+		push 3 \
+		push 4 \
+		quit n" << endl;
 
-	string cmd;
+	s.seekg(ios::beg);
 
-	while (true)
-	{
-		cin >> cmd;
-		if (cmd == "quit")
+	while (true) {
+		unsigned long n;
+		cout << "请输入栈的容量：" << endl;
+		inputTo(n);
+		LinkStack<int> l(n);
+
+		string cmd;
+
+		while (true)
 		{
-			l.traverseInStack(printNum);
-			break;
-		}
-		if (cmd == "pop")
-		{
-			int outStack;
-			if (l.pop(outStack))
+			cout << "请输入命令：" << endl;
+			inputTo(cmd);
+			if (cmd == "quit")
 			{
-				cout << outStack;
+				l.traverseInStack(printNum);
 				cout << endl;
+				break;
 			}
-			else
+			if (cmd == "pop")
 			{
-				cout << "Stack is Empty" << endl;
+				int outStack;
+				if (l.pop(outStack))
+				{
+					cout << outStack;
+					cout << endl;
+				}
+				else
+				{
+					cout << "Stack is Empty" << endl;
+				}
+			}
+			if (cmd == "push")
+			{
+				int inStack;
+				inputTo(inStack);
+				if (l.push(inStack))
+					cout << "Success" << endl;
+				else
+					cout << "Stack is Full" << endl;
 			}
 		}
-		if (cmd == "push")
-		{
-			int inStack;
-			cin >> inStack;
-			if (l.push(inStack))
-				;
-			else
-				cout << "Stack is Full" << endl;
-		}
+
+		cout << "重新开始？" << endl;
+		char c;
+		inputTo(c);
+		if (c != 'y')break;
+
 	}
 
-
-#ifdef _FS_DEBUG
-	fclose(f);
-#endif
 	return 0;
 }

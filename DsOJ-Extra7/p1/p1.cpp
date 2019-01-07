@@ -211,29 +211,38 @@ struct HuffTree
 {
 	HuffNode<E> *body;
 	size_t size;
+	size_t n;
+	string *codes;
 
 	HuffTree()
 	{
 		body = NULL;
+		codes = NULL;
 	}
 
-	void init(size_t size_)
+	void init(size_t n_, size_t size_)
 	{
 		size = size_;
+		n = n_;
 		if (body)
 			delete[]body;
+		if (codes)
+			delete[]codes;
 		body = new HuffNode<E>[size];
+		codes = new string[n_]{};
 	}
 
 	~HuffTree()
 	{
 		if (body)
 			delete []body;
+		if (codes)
+			delete[]codes;
 	}
 
 	E build(E *seq, size_t n)
 	{
-		init(2 * n + 1 + 1);
+		init(n, 2 * n + 1 + 1);
 		Heap<HuffNode<E>> h(MINHEAP, size);
 		E weightedSum = 0;
 		for (size_t i = 0; i < size; i++)
@@ -263,10 +272,54 @@ struct HuffTree
 			newHNI++;
 		}
 		assert(newHNI == 2 * n - 1);
+
+		for (size_t i = 0; i < n; i++)
+		{
+			size_t curr = i;
+			while (curr != SIZE_MAX)
+			{
+				codes[i] = static_cast<char>(body[curr].ct + '0') + codes[i];
+				curr = body[curr].parent;
+			}
+		}
+
 		return weightedSum;
+	}
+
+	friend std::istream & operator >> (std::istream &in, HuffTree<E>& h);
+
+	void printAllCodes(std::ostream& out)
+	{
+		for (size_t i = 0; i < n; i++)
+		{
+			out << (i + 1) << " " << codes[i] << endl;
+		}
 	}
 };
 
+
+template <typename E>
+std::istream & operator >> (std::istream &in, HuffTree<E>& h)
+{
+	size_t n;
+	in >> n;
+	h.init(2 * n + 1 + 1);
+	E e;
+	childType ct;
+	size_t parent;
+	for (size_t i = 0; i < 2 * n - 1; i++)
+	{
+		in >> e >> parent >> ct;
+		if (parent == 0)
+			parent = SIZE_MAX;
+		else
+			parent--;
+		h.body[i].e = e;
+		h.body[i].ct = ct;
+		h.body[i].parent = parent;
+	}
+	return in;
+}
 
 #define FS_INFILE
 //#define FS_OUTFILE

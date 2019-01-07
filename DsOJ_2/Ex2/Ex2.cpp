@@ -23,6 +23,12 @@ void printNum(int &n, unsigned i);
 template <typename Elem>
 class LinkNode
 {
+	friend class LinkList < Elem >;
+	friend class DuLinkNode < Elem >;
+	friend class OrderedLinkList< Elem>;
+	friend class DuCircularLinkList< Elem>;
+	template <typename Elem2>
+	friend void mergeOrderedLinkListToDest(OrderedLinkList< Elem2> & dest, OrderedLinkList< Elem2> & source);
 public:
 	Elem dataField;
 	LinkNode< Elem> * next;
@@ -61,11 +67,15 @@ public:
 template <typename Elem>
 class DuLinkNode
 {
+	friend class LinkList< Elem>;
+	friend class OrderedLinkList< Elem>;
+	friend class DuCircularLinkList< Elem>;
+private:
 public:
 	Elem dataField;
 	DuLinkNode< Elem> * next;
 	DuLinkNode< Elem> * prev;
-public:
+
 	//Constructor
 	DuLinkNode()
 	{
@@ -106,7 +116,7 @@ public:
 template <typename Elem>
 class LinkList
 {
-public:
+protected:
 	LinkNode< Elem> * sentinel;
 
 
@@ -240,7 +250,7 @@ public:
 	{
 		if (i == 0)
 			return false;
-		LinkNodeSearchResult< Elem, LinkNode> thisNodeResult = getDataDetail(i);	//don't use []: may return sentinel
+		LinkNodeSearchResult< Elem, LinkNode> thisNodeResult = getDataDetail(i);    //don't use []: may return sentinel
 
 		if (thisNodeResult.number == 0)
 			return false;
@@ -423,12 +433,12 @@ void mergeOrderedLinkListToDest(OrderedLinkList< Elem> & dest, OrderedLinkList< 
 		destPrevP->next = sourcePrevP->next;
 		sourcePrevP->next = NULL;
 	}
-};
+}
 
 template <typename Elem>
 class DuCircularLinkList
 {
-protected:
+public:
 	DuLinkNode< Elem> * sentinel;
 
 
@@ -574,7 +584,7 @@ public:
 	{
 		if (i == 0)
 			return false;
-		LinkNodeSearchResult< Elem, DuLinkNode> thisNodeResult = getDataDetail<DuLinkNode>(i);	//don't use []: may return sentinel
+		LinkNodeSearchResult< Elem, DuLinkNode> thisNodeResult = getDataDetail<DuLinkNode>(i);    //don't use []: may return sentinel
 
 		if (thisNodeResult.number == 0)
 			return false;
@@ -595,14 +605,14 @@ public:
 
 		if (thisNodeResult.prev == this->sentinel)
 		{
-			//Í·²å
+			//????
 			currNewP->prev = this->sentinel->prev;
 			this->sentinel->prev->next = currNewP;
 		}
 
 		if (currNewP->next == NULL)
 		{
-			//Î²²å
+			//¦Â??
 			currNewP->next = this->sentinel->next;
 			this->sentinel->prev = this->sentinel->next->prev = currNewP;
 		}
@@ -724,30 +734,60 @@ void printNum(int &n, unsigned i)
 
 int main()
 {
-#ifdef _FS_DEBUG
-	FILE *f;
-	fopen_s(&f, "ap3.txt", "r");
-	freopen_s(&f, "ap3.txt", "r", stdin);
-	//ofstream f2;
-	//f2.open("Output.txt", ios::out);
-	//cout.set_rdbuf(f2.rdbuf());
-#endif
-	LinkList< int> l;
-	unsigned elemNum;
-	cin >> elemNum;
-	int currNum;
-	for (unsigned i = 0; i < elemNum; i++)
+	DuCircularLinkList< int> l;
+	unsigned n, s, m;
+	cin >> n >> s >> m;
+	for (unsigned i = 0; i < n; i++)
 	{
-		cin >> currNum;
-		l.insertTail(currNum);
+		l.insertTail(i + 1);
 	}
 
-	l.deduplicate();
-	l.traverse(printNum);
+	LinkNodeSearchResult< int, DuLinkNode> result = l.getDataDetail<DuLinkNode>(s);
+	DuLinkNode< int> * currMan = result.pointer, *tempP;
 
+	while (l.sentinel->next != NULL)
+	{
+		for (unsigned i = 1; i < m; i++)
+			currMan = currMan->next;
 
-#ifdef _FS_DEBUG
-	fclose(f);
-#endif
+		//delete
+		if (l.sentinel->next == currMan)
+		{
+			if (currMan->next == currMan)
+			{
+				//delete the last node
+				l.sentinel->next = l.sentinel->prev = NULL;
+
+				cout << currMan->dataField;
+				tempP = currMan->next;
+				delete currMan;
+				currMan = tempP;
+				continue;
+			}
+
+			l.sentinel->next = currMan->next;
+			currMan->next->prev = l.sentinel->prev;
+			l.sentinel->prev->next = currMan->next;
+
+			cout << currMan->dataField << " ";
+			tempP = currMan->next;
+			delete currMan;
+			currMan = tempP;
+			continue;
+		}
+
+		currMan->prev->next = currMan->next;
+		currMan->next->prev = currMan->prev;
+
+		if (currMan->next == l.sentinel->next)
+		{
+			l.sentinel->prev = currMan->prev;
+		}
+
+		cout << currMan->dataField << " ";
+		tempP = currMan->next;
+		delete currMan;
+		currMan = tempP;
+	}
 	return 0;
 }
